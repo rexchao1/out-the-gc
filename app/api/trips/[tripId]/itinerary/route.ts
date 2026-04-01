@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { requireSession } from "@/lib/api-auth";
 import { assertEditor, assertMember, assertOwner } from "@/lib/trip-access";
@@ -54,7 +55,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ tripId: string
     return NextResponse.json({ error: "Validation failed", details: parsed.error.flatten() }, { status: 400 });
   }
 
-  let snapshot: Record<string, unknown>;
+  let snapshot: Prisma.InputJsonValue;
 
   if (parsed.data.applyFromVotes) {
     const ownerCheck = await assertOwner(tripId, authd.userId);
@@ -97,7 +98,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ tripId: string
       })),
     };
   } else if (parsed.data.snapshot) {
-    snapshot = parsed.data.snapshot as Record<string, unknown>;
+    snapshot = parsed.data.snapshot as Prisma.InputJsonValue;
   } else {
     const trip = await prisma.trip.findUnique({
       where: { id: tripId },

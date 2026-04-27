@@ -75,8 +75,20 @@ export default function CreateTripPage() {
     };
     console.log("create-trip-form", payload);
 
+    let supabase;
+    try {
+      supabase = getSupabase();
+    } catch {
+      setError(
+        "Supabase is not configured in this environment. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY (for example in Vercel), then redeploy.",
+      );
+      return;
+    }
+
+    const rsvpForDb = normalizeDatetimeLocalForPostgres(payload.rsvpDeadline);
+
     setIsSubmitting(true);
-    const { data, error: insertError } = await getSupabase()
+    const { data, error: insertError } = await supabase
       .from("trips")
       .insert({
         trip_name: payload.tripName,
@@ -84,7 +96,7 @@ export default function CreateTripPage() {
         start_date: payload.startDate,
         end_date: payload.endDate,
         cost_per_person: payload.estimatedCostPerPerson,
-        rsvp_deadline: payload.rsvpDeadline,
+        rsvp_deadline: rsvpForDb,
         organizer_name: payload.organizerName,
       })
       .select("id")
@@ -92,7 +104,8 @@ export default function CreateTripPage() {
     setIsSubmitting(false);
 
     if (insertError) {
-      setError(insertError.message || "Could not save trip. Please try again.");
+      const parts = [insertError.message, insertError.details, insertError.hint].filter(Boolean);
+      setError(parts.join(" — ") || "Could not save trip. Please try again.");
       return;
     }
 
@@ -219,3 +232,11 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const inputClass =
   "h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[var(--accent)] focus:ring-2 focus:ring-blue-100";
+
+/** `datetime-local` yields `YYYY-MM-DDTHH:mm`; Postgres timestamp accepts `...:ss` reliably. */
+function normalizeDatetimeLocalForPostgres(value: string) {
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) {
+    return `${value}:00`;
+  }
+  return value;
+}

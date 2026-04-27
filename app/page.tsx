@@ -1,36 +1,21 @@
-import Link from "next/link";
-import { auth } from "@/auth";
-import { Button } from "@/components/ui/button";
-
-export default async function HomePage() {
-  const session = await auth();
-
+export default function HomePage() {
   return (
-    <div className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-8 px-6 py-16">
-      <div className="space-y-4">
-        <p className="text-sm font-medium uppercase tracking-wide text-[var(--color-muted)]">Out of the GC</p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Plan group trips together—with real places and travel data.</h1>
-        <p className="text-lg text-[var(--color-muted)]">
-          Set a destination and budget, discover activities with Google Places, sketch stays and transport with Amadeus, vote per day, and
-          validate the plan before you share booking links.
+    <main className="mx-auto flex min-h-screen max-w-5xl items-center px-6 py-16">
+      <section className="w-full rounded-3xl border border-black/5 bg-white/80 p-10 shadow-sm backdrop-blur sm:p-14">
+        <p className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Out of the GC</p>
+        <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-slate-900 sm:text-6xl">
+          Plan a group trip without the planning chaos.
+        </h1>
+        <p className="mt-5 max-w-2xl text-lg text-slate-600">
+          Turn one idea into a clear plan everyone can align on. We will build the trip flow next.
         </p>
-      </div>
-      <div className="flex flex-wrap gap-3">
-        {session?.user ? (
-          <Button asChild>
-            <Link href="/trips">Your trips</Link>
-          </Button>
-        ) : (
-          <>
-            <Button asChild>
-              <Link href="/login">Sign in</Link>
-            </Button>
-            <Button variant="secondary" asChild>
-              <Link href="/register">Create account</Link>
-            </Button>
-          </>
-        )}
-      </div>
-    </div>
+        <button
+          type="button"
+          className="mt-9 inline-flex items-center rounded-xl bg-[var(--accent)] px-6 py-3 text-base font-semibold text-[var(--accent-foreground)] transition hover:opacity-90"
+        >
+          Plan a Trip
+        </button>
+      </section>
+    </main>
   );
 }

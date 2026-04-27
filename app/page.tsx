@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function HomePage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-5xl items-center px-6 py-16">
@@ -9,12 +11,12 @@ export default function HomePage() {
         <p className="mt-5 max-w-2xl text-lg text-slate-600">
           Turn one idea into a clear plan everyone can align on. We will build the trip flow next.
         </p>
-        <button
-          type="button"
+        <Link
+          href="/create"
           className="mt-9 inline-flex items-center rounded-xl bg-[var(--accent)] px-6 py-3 text-base font-semibold text-[var(--accent-foreground)] transition hover:opacity-90"
         >
           Plan a Trip
-        </button>
+        </Link>
       </section>
     </main>
   );

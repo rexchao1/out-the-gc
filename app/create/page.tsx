@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { getSupabase } from "../../lib/supabase";
 
 type CreateTripForm = {
   tripName: string;
@@ -24,9 +26,10 @@ const initialForm: CreateTripForm = {
 };
 
 export default function CreateTripPage() {
+  const router = useRouter();
   const [form, setForm] = useState<CreateTripForm>(initialForm);
   const [error, setError] = useState<string>("");
-  const [success, setSuccess] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function onChange<K extends keyof CreateTripForm>(key: K, value: CreateTripForm[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -51,10 +54,9 @@ export default function CreateTripPage() {
     return "";
   }
 
-  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
-    setSuccess("");
 
     const validationMessage = validate();
     if (validationMessage) {
@@ -62,7 +64,7 @@ export default function CreateTripPage() {
       return;
     }
 
-    console.log("create-trip-form", {
+    const payload = {
       tripName: form.tripName.trim(),
       destination: form.destination.trim(),
       startDate: form.startDate,
@@ -70,10 +72,36 @@ export default function CreateTripPage() {
       estimatedCostPerPerson: Number(form.costPerPerson),
       rsvpDeadline: form.rsvpDeadline,
       organizerName: form.organizerName.trim(),
-    });
+    };
+    console.log("create-trip-form", payload);
 
-    setSuccess("Your trip has been created! Shareable link coming soon.");
-    setForm(initialForm);
+    setIsSubmitting(true);
+    const { data, error: insertError } = await getSupabase()
+      .from("trips")
+      .insert({
+        trip_name: payload.tripName,
+        destination: payload.destination,
+        start_date: payload.startDate,
+        end_date: payload.endDate,
+        cost_per_person: payload.estimatedCostPerPerson,
+        rsvp_deadline: payload.rsvpDeadline,
+        organizer_name: payload.organizerName,
+      })
+      .select("id")
+      .single();
+    setIsSubmitting(false);
+
+    if (insertError) {
+      setError(insertError.message || "Could not save trip. Please try again.");
+      return;
+    }
+
+    if (!data?.id) {
+      setError("Trip saved but no id was returned.");
+      return;
+    }
+
+    router.push(`/trip/${data.id}`);
   }
 
   return (
@@ -167,15 +195,12 @@ export default function CreateTripPage() {
           {error ? (
             <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
           ) : null}
-          {success ? (
-            <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{success}</p>
-          ) : null}
-
           <button
             type="submit"
+            disabled={isSubmitting}
             className="inline-flex w-full items-center justify-center rounded-xl bg-[var(--accent)] px-5 py-3 text-base font-semibold text-[var(--accent-foreground)] transition hover:opacity-90"
           >
-            Create Trip
+            {isSubmitting ? "Creating..." : "Create Trip"}
           </button>
         </form>
       </section>

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getSupabase, type TripRow } from "../../../lib/supabase";
+import { getSupabase, type RsvpRow, type TripRow } from "../../../lib/supabase";
 import { CopyLinkButton } from "./copy-link-button";
+import { RsvpSection } from "./rsvp-section";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,14 @@ export default async function TripDetailPage({ params }: { params: Promise<{ id:
   if (error || !data) {
     notFound();
   }
+
+  const rsvpsResult = await getSupabase()
+    .from("rsvps")
+    .select("*")
+    .eq("trip_id", id)
+    .order("created_at", { ascending: true });
+
+  const initialRsvps: RsvpRow[] = (rsvpsResult.data ?? []) as RsvpRow[];
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl items-center px-6 py-14">
@@ -41,6 +50,8 @@ export default async function TripDetailPage({ params }: { params: Promise<{ id:
           <Field label="Trip ID" value={data.id} fullWidth />
           <Field label="Created At" value={formatDateTime(data.created_at)} fullWidth />
         </div>
+
+        <RsvpSection tripId={data.id} rsvpDeadline={data.rsvp_deadline} initialRsvps={initialRsvps} />
       </section>
     </main>
   );

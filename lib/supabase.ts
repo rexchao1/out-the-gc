@@ -27,3 +27,11 @@ export type TripRow = {
   organizer_name: string;
   created_at: string;
 };
+
+export type RsvpRow = {
+  id: string;
+  trip_id: string;
+  name: string;
+  response: "in" | "out";
+  created_at: string;
+};
